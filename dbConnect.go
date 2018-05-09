@@ -15,19 +15,28 @@ type User struct {
 
 func main() {
 	db := dbConn()
+
+	intDb, err := db.Prepare("INSERT user SET firstname=?, lastname=?, age=?")
+	checkErr(err)
+
+	response, err := intDb.Exec("Test","User",25)
+	checkErr(err)
+
+	id, err := response.LastInsertId();
+
+	fmt.Println(id);
+
 	selDb, err := db.Query("SELECT * FROM user")
 	user := User{}
 	res := []User{}
-	if err != nil{
-		panic(err.Error())
-	}
+	checkErr(err)
+
 	for selDb.Next() {
 		var id, age int
 		var firstname, lastname string
 		err := selDb.Scan(&id, &firstname, &lastname, &age)
-		if err != nil{
-			panic(err.Error())
-		}
+		checkErr(err)
+
 		user.id = id
 		user.firstname = firstname
 		user.lastname = lastname
@@ -40,9 +49,12 @@ func main() {
 
 func dbConn() (db *sql.DB){
 	db, err := sql.Open("mysql","root:@/gocrud")
-	if err != nil{
-		panic(err.Error())
-	}
+	checkErr(err)
 	return db
 }
 
+func checkErr(err error){
+	if err != nil{
+		panic(err)
+	}
+}
